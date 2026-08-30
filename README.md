@@ -1,3 +1,4 @@
+
 # Eklavya Solutions
 ### "Bridging Skills with Industry"
 
@@ -136,3 +137,6 @@ This project is built phase by phase, and each phase only extends the
 previous one (nothing is rebuilt from scratch). Phase 1 covers project
 foundation, auth, branding, and core layout. See the master specification
 for the full Phase 1–8 roadmap.
+
+# eklavya-solutions
+
