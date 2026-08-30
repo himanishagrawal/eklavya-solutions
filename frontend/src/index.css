@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #0A0E16;
+    background-image: radial-gradient(circle at 15% 0%, rgba(58,169,255,0.06), transparent 45%),
+      radial-gradient(circle at 85% 20%, rgba(124,108,240,0.05), transparent 40%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display text-ink;
+  }
+
+  ::selection {
+    background: rgba(58,169,255,0.3);
+  }
+
+  /* Visible keyboard focus everywhere - accessibility requirement */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid #3AA9FF;
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .surface-card {
+    @apply bg-surface border border-surface-border rounded-2xl shadow-card;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-accent text-base font-semibold px-5 py-2.5
+      transition-all duration-200 hover:bg-accent-dim active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface-elevated text-ink font-medium px-5 py-2.5
+      transition-all duration-200 hover:border-accent/50 hover:bg-surface active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl bg-surface-elevated border border-surface-border text-ink placeholder-ink-faint px-4 py-2.5
+      outline-none transition-colors duration-150 focus:border-accent/60;
+  }
+}
+
+/* Thin, understated scrollbars to match the premium theme */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #22304A; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #2B3B5A; }

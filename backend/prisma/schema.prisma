@@ -1,0 +1,73 @@
+// ============================================================
+// EKLAVYA SOLUTIONS - Prisma Schema
+// PHASE 1 SCOPE: users + students (auth foundation only)
+// Future phases will extend this file with skills, jobs,
+// courses, learning, districts, employers, etc. as per the
+// master specification. Do not remove fields/models added here.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  INSTITUTE
+  EMPLOYER
+  ADMIN
+}
+
+enum WorkPreference {
+  REMOTE
+  HYBRID
+  ONSITE
+}
+
+// Core identity table shared by every role in the platform.
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(STUDENT)
+  isDemo       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  student Student?
+
+  @@map("users")
+}
+
+// Student profile. Phase 1 keeps this intentionally minimal
+// (identity + placeholders for career fields). Phase 2 will
+// extend this with district/college/skills/onboarding data.
+model Student {
+  id             String          @id @default(uuid())
+  userId         String          @unique
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName       String
+  city           String?
+  district       String?
+  state          String?
+  college        String?
+  degree         String?
+  semester       String?
+  graduationYear Int?
+
+  targetIndustry String?
+  targetRole     String?
+  targetLocation String?
+  workPreference WorkPreference?
+
+  profileCompletion Int      @default(10)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("students")
+}
