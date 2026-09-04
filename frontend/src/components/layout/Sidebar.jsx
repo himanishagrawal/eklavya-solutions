@@ -18,12 +18,12 @@ import Logo from '../ui/Logo.jsx';
 // disabled "coming in a future phase" entries - never fake links.
 const NAV_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/app/dashboard' },
-  { label: 'My Skills', icon: Target },
+  { label: 'My Skills', icon: Target, to: '/app/skills' }, // PHASE 2
   { label: 'Skill Gap', icon: TrendingUp },
   { label: 'Learning', icon: BookOpen },
   { label: 'Career Pathway', icon: RouteIcon },
   { label: 'Jobs', icon: Briefcase },
-  { label: 'Profile', icon: UserCircle },
+  { label: 'Profile', icon: UserCircle, to: '/app/profile' }, // PHASE 2
   { label: 'Settings', icon: Settings },
 ];
 

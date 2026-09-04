@@ -14,12 +14,25 @@ export default function Button({
   icon: Icon,
   className = '',
   type = 'button',
+  as: Component = 'button',
   ...rest
 }) {
+  // PHASE 2: polymorphic support so Button can render as <Link> (or
+  // any component) when it needs to navigate, e.g. <Button as={Link}
+  // to="/app/onboarding">. Plain <button> usage (the vast majority)
+  // is completely unchanged.
+  const isNativeButton = Component === 'button';
+
   return (
-    <button type={type} className={`${VARIANTS[variant]} ${className}`} disabled={isLoading || rest.disabled} {...rest}>
+    <Component
+      {...(isNativeButton ? { type } : {})}
+      className={`${VARIANTS[variant]} ${className}`}
+      disabled={isNativeButton ? isLoading || rest.disabled : undefined}
+      aria-disabled={!isNativeButton && (isLoading || rest.disabled) ? true : undefined}
+      {...rest}
+    >
       {isLoading ? <Loader2 size={18} className="animate-spin" /> : Icon ? <Icon size={18} /> : null}
       {children}
-    </button>
+    </Component>
   );
 }

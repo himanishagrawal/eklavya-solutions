@@ -67,6 +67,22 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // PHASE 2: re-fetches /auth/me and updates the in-memory user, so
+  // profile completion / onboardingCompleted / targetRole reflect
+  // immediately after onboarding or a profile edit, without forcing
+  // the student to log out and back in.
+  const refreshUser = useCallback(async () => {
+    try {
+      const currentUser = await authService.fetchCurrentUser();
+      setUser(currentUser);
+      return currentUser;
+    } catch (err) {
+      // Session may have expired - leave existing state, bootstrap's
+      // interceptor/login flow will handle re-authentication.
+      throw err;
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authService.logout();
@@ -80,8 +96,17 @@ export function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, status, error, login, register, logout, isAuthenticated: status === 'authenticated' }),
-    [user, status, error, login, register, logout]
+    () => ({
+      user,
+      status,
+      error,
+      login,
+      register,
+      logout,
+      refreshUser, // PHASE 2
+      isAuthenticated: status === 'authenticated',
+    }),
+    [user, status, error, login, register, logout, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,9 +1,12 @@
 // ============================================================
 // EKLAVYA SOLUTIONS - Prisma Schema
-// PHASE 1 SCOPE: users + students (auth foundation only)
-// Future phases will extend this file with skills, jobs,
-// courses, learning, districts, employers, etc. as per the
-// master specification. Do not remove fields/models added here.
+// PHASE 1: users + students (auth foundation).
+// PHASE 2 (this update): skills catalog + student_skills join,
+// plus onboarding-related fields on Student. Existing Phase 1
+// models/fields are untouched - only additive changes below.
+// Future phases will extend this file further with jobs,
+// courses, learning, districts, employers, etc. Do not remove
+// fields/models added here.
 // ============================================================
 
 generator client {
@@ -26,6 +29,14 @@ enum WorkPreference {
   REMOTE
   HYBRID
   ONSITE
+}
+
+// PHASE 2: proficiency scale used for student_skills. Job/course
+// skill requirements (Phase 3+) will reuse this same enum.
+enum Proficiency {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
 }
 
 // Core identity table shared by every role in the platform.
@@ -65,9 +76,51 @@ model Student {
   targetLocation String?
   workPreference WorkPreference?
 
+  // PHASE 2: optional onboarding fields
+  certifications        String?
+  projects              String?
+  internshipExperience  String?
+  resumeUrl             String?
+
+  // PHASE 2: tracks whether the multi-step onboarding wizard has
+  // been completed, so the dashboard/app can prompt appropriately.
+  onboardingCompleted Boolean  @default(false)
+
   profileCompletion Int      @default(10)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  // PHASE 2: student <-> skills relationship
+  studentSkills StudentSkill[]
+
   @@map("students")
+}
+
+// PHASE 2: global skill catalog. Reused by future phases for
+// job_skills, course_skills, employer_skill_validation, etc.
+model Skill {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  category  String?
+  createdAt DateTime @default(now())
+
+  studentSkills StudentSkill[]
+
+  @@map("skills")
+}
+
+// PHASE 2: join table between Student and Skill, carrying the
+// student's self-reported proficiency for that skill.
+model StudentSkill {
+  id          String      @id @default(uuid())
+  studentId   String
+  student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  skillId     String
+  skill       Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  proficiency Proficiency @default(BEGINNER)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([studentId, skillId])
+  @@map("student_skills")
 }

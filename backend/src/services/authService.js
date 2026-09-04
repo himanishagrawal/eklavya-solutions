@@ -10,7 +10,9 @@ function isAllowedStudentEmail(email) {
 }
 
 function buildAuthPayload(user) {
-  return { sub: user.id, email: user.email, role: user.role };
+  // PHASE 2: studentId travels in the token so ownership checks on
+  // /api/students/:id routes are a cheap comparison, no extra query.
+  return { sub: user.id, email: user.email, role: user.role, studentId: user.student?.id ?? null };
 }
 
 function issueTokens(user) {
@@ -33,6 +35,7 @@ function toPublicUser(user) {
           fullName: user.student.fullName,
           profileCompletion: user.student.profileCompletion,
           targetRole: user.student.targetRole,
+          onboardingCompleted: user.student.onboardingCompleted, // PHASE 2
         }
       : null,
   };

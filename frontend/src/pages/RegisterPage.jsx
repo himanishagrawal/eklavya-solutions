@@ -1,62 +1,53 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, AlertCircle } from 'lucide-react';
 import Logo from '../components/ui/Logo.jsx';
 import Input from '../components/ui/Input.jsx';
 import Button from '../components/ui/Button.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { validateStudentEmail, validatePassword } from '../utils/validators.js';
 
-const DEMO_CREDENTIALS = {
-  email: 'aarav.sharma@demo.eklavya.in',
-  password: 'Demo@1234',
-};
-
-const demoModeEnabled = (import.meta.env.VITE_ENABLE_DEMO_MODE || 'true') === 'true';
-
-export default function LoginPage() {
+// PHASE 2: registration was already supported by the Phase 1 backend
+// (POST /api/auth/register) and AuthContext.register(), but had no
+// frontend page yet. This is the smallest addition needed so new
+// students can reach the onboarding flow described in Phase 2.
+export default function RegisterPage() {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const { login, status } = useAuth();
+  const { register, status } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname || '/app/dashboard';
 
-  const runLogin = async (credentials) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errors = {};
+    if (!fullName.trim() || fullName.trim().length < 2) errors.fullName = 'Enter your full name';
+    const emailError = validateStudentEmail(email);
+    if (emailError) errors.email = emailError;
+    const passwordError = validatePassword(password);
+    if (passwordError) errors.password = passwordError;
+    if (password !== confirmPassword) errors.confirmPassword = 'Passwords do not match';
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     setSubmitError(null);
     setSubmitting(true);
     try {
-      await login(credentials);
-      navigate(from, { replace: true });
+      await register({ fullName: fullName.trim(), email, password });
+      // New students go straight into the onboarding wizard.
+      navigate('/app/onboarding', { replace: true });
     } catch (err) {
-      setSubmitError(err.message || 'Unable to log in. Please check your credentials.');
+      setSubmitError(err.message || 'Unable to create your account. Please try again.');
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const emailError = validateStudentEmail(email);
-    const passwordError = validatePassword(password);
-    const errors = {};
-    if (emailError) errors.email = emailError;
-    if (passwordError) errors.password = passwordError;
-    setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-    runLogin({ email, password });
-  };
-
-  const handleDemoLogin = () => {
-    setEmail(DEMO_CREDENTIALS.email);
-    setPassword(DEMO_CREDENTIALS.password);
-    setFieldErrors({});
-    runLogin(DEMO_CREDENTIALS);
   };
 
   return (
@@ -74,9 +65,9 @@ export default function LoginPage() {
         </div>
 
         <div className="surface-card p-8">
-          <h1 className="font-display text-2xl font-semibold text-ink">Welcome back</h1>
+          <h1 className="font-display text-2xl font-semibold text-ink">Create your account</h1>
           <p className="mt-1.5 text-sm text-ink-muted">
-            Log in with your student email to see your skill dashboard.
+            Set up your student profile to start tracking your skill gap.
           </p>
 
           {submitError && (
@@ -87,6 +78,17 @@ export default function LoginPage() {
           )}
 
           <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+            <Input
+              id="fullName"
+              type="text"
+              label="Full name"
+              placeholder="Aarav Sharma"
+              icon={User}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              error={fieldErrors.fullName}
+              autoComplete="name"
+            />
             <Input
               id="email"
               type="email"
@@ -102,12 +104,23 @@ export default function LoginPage() {
               id="password"
               type="password"
               label="Password"
-              placeholder="••••••••"
+              placeholder="At least 8 characters"
               icon={Lock}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               error={fieldErrors.password}
-              autoComplete="current-password"
+              autoComplete="new-password"
+            />
+            <Input
+              id="confirmPassword"
+              type="password"
+              label="Confirm password"
+              placeholder="Re-enter your password"
+              icon={Lock}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              error={fieldErrors.confirmPassword}
+              autoComplete="new-password"
             />
 
             <Button
@@ -117,38 +130,14 @@ export default function LoginPage() {
               isLoading={submitting || status === 'loading'}
               className="mt-2 w-full"
             >
-              Log in
+              Create account
             </Button>
           </form>
 
-          {demoModeEnabled && (
-            <>
-              <div className="my-6 flex items-center gap-3">
-                <div className="h-px flex-1 bg-surface-border" />
-                <span className="text-xs uppercase tracking-wide text-ink-faint">or</span>
-                <div className="h-px flex-1 bg-surface-border" />
-              </div>
-
-              <Button
-                variant="secondary"
-                icon={Sparkles}
-                onClick={handleDemoLogin}
-                isLoading={submitting}
-                className="w-full"
-              >
-                Try demo student login
-              </Button>
-              <p className="mt-3 text-center text-xs text-ink-faint">
-                Demo mode — signs in as the seeded demo student
-                ({DEMO_CREDENTIALS.email})
-              </p>
-            </>
-          )}
-
           <p className="mt-6 text-center text-sm text-ink-muted">
-            New to Eklavya Solutions?{' '}
-            <Link to="/register" className="font-medium text-accent hover:underline">
-              Create an account
+            Already have an account?{' '}
+            <Link to="/login" className="font-medium text-accent hover:underline">
+              Log in
             </Link>
           </p>
         </div>
